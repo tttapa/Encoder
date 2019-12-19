@@ -39,6 +39,7 @@
 #endif
 
 #include "utility/direct_pin_read.h"
+#include "utility/move.h"
 
 #if defined(ENCODER_USE_INTERRUPTS) || !defined(ENCODER_DO_NOT_USE_INTERRUPTS)
 #define ENCODER_USE_INTERRUPTS
@@ -69,7 +70,11 @@ typedef struct {
 class Encoder
 {
 public:
-	Encoder(uint8_t pin1, uint8_t pin2) {
+	Encoder(uint8_t pin1, uint8_t pin2)
+#ifdef ENCODER_USE_INTERRUPTS
+	: pin1(pin1), pin2(pin2) 
+#endif
+	{
 		#ifdef INPUT_PULLUP
 		pinMode(pin1, INPUT_PULLUP);
 		pinMode(pin2, INPUT_PULLUP);
@@ -99,6 +104,27 @@ public:
 		//update_finishup();  // to force linker to include the code (does not work)
 	}
 
+	Encoder(const Encoder&) = delete;
+	Encoder &operator=(const Encoder&) = delete;
+
+	Encoder(Encoder &&other) {
+		*this = enc_util::move(other);
+	}
+	Encoder &operator=(Encoder &&other) {
+		this->encoder = other.encoder;
+#ifdef ENCODER_USE_INTERRUPTS
+		this->pin1 = other.pin1;
+		this->pin2 = other.pin2;
+		this->interrupts_in_use = other.interrupts_in_use;
+		other.interrupts_in_use = 0;
+		// update the pointers in interruptArgs:
+		noInterrupts();
+		attach_interrupt(this->pin1, &this->encoder);
+		attach_interrupt(this->pin2, &this->encoder);
+		interrupts();
+#endif
+		return *this;
+	}
 
 #ifdef ENCODER_USE_INTERRUPTS
 	inline int32_t read() {
@@ -147,6 +173,7 @@ public:
 private:
 	Encoder_internal_state_t encoder;
 #ifdef ENCODER_USE_INTERRUPTS
+	uint8_t pin1, pin2;
 	uint8_t interrupts_in_use;
 #endif
 public:
