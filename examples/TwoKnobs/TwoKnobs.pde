@@ -17,6 +17,8 @@ Encoder knobRight(7, 8);
 void setup() {
   Serial.begin(9600);
   Serial.println("TwoKnobs Encoder Test:");
+  knobLeft.begin();
+  knobRight.begin();
 }
 
 long positionLeft  = -999;

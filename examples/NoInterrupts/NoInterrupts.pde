@@ -29,6 +29,7 @@ Encoder myEnc(5, 6);
 void setup() {
   Serial.begin(9600);
   Serial.println("Basic NoInterrupts Test:");
+  myEnc.begin();
 }
 
 long position  = -999;

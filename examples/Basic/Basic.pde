@@ -16,6 +16,7 @@ Encoder myEnc(5, 6);
 void setup() {
   Serial.begin(9600);
   Serial.println("Basic Encoder Test:");
+  myEnc.begin();
 }
 
 long oldPosition  = -999;

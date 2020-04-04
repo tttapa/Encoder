@@ -88,6 +88,7 @@ const int outputPin = 12;
 
 void setup() {
   pinMode(outputPin, OUTPUT);
+  myEnc.begin();
 }
 
 #if defined(__AVR__) || defined(TEENSYDUINO)
