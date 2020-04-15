@@ -67,6 +67,8 @@ typedef struct {
     int32_t               position;
 } Encoder_internal_state_t;
 
+#include "codegen/ISRs-decl.ipp"
+
 class Encoder
 {
 public:
@@ -160,12 +162,16 @@ public:
         if (interrupt != NOT_AN_INTERRUPT) {
             interruptArgs[interrupt] = &encoder;
             ++interrupts_in_use;
-            attachInterrupt(interrupt, ISRs[interrupt], CHANGE);
+            attachInterrupt(interrupt, EncoderISRs::ISRs[interrupt], CHANGE);
         }
     }
     void detachInterruptCtx(int interrupt) {
         if (interrupt != NOT_AN_INTERRUPT) {
+#ifndef ENCODER_OPTIMIZE_INTERRUPTS
             detachInterrupt(interrupt);
+#else
+            // TODO: add disableInterrupt
+#endif
             --interrupts_in_use;
         }
     }
@@ -384,9 +390,6 @@ public:
         }
 #endif
     }
-    private:
-
-    #include "codegen/ISRs.ipp"
 };
 
 #if defined(ENCODER_USE_INTERRUPTS) && defined(ENCODER_OPTIMIZE_INTERRUPTS)
@@ -422,6 +425,5 @@ ISR(INT7_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(7)]);
 #undef attachInterrupt
 #endif
 #endif // ENCODER_OPTIMIZE_INTERRUPTS
-
 
 #endif

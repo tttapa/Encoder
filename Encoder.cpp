@@ -6,3 +6,5 @@
 // to facilitate some crafty optimizations!
 
 Encoder_internal_state_t *Encoder::interruptArgs[] = {};
+
+#include "codegen/ISRs-def.ipp"

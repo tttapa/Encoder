@@ -1,26 +1,50 @@
 #!/usr/bin/env python3
 
-from os.path import dirname, join
+from os.path import dirname, join, basename
 
 max_num_interrupts = 60
 
-ISRs = r"""
+header = f"""\
+// ========================================================================== //
+//                                                                            //
+//                        AUTOMATICALLY GENERATED FILE                        //
+//                                DO NOT EDIT!                                //
+//                                                                            //
+// ========================================================================== //
+
+// Edit and re-run  {basename(__file__)} instead
+
 #if defined(ENCODER_USE_INTERRUPTS) && !defined(ENCODER_OPTIMIZE_INTERRUPTS)
 
-    using ISR_fun_t = void (*)(void);
+namespace EncoderISRs {{
 
-    ISR_fun_t ISRs[ENCODER_ARGLIST_SIZE] = {
 """
 
-for i in range(max_num_interrupts):
-    ISRs += f'      #if {i} < ENCODER_ARGLIST_SIZE\n'
-    ISRs += f'        +[] {{ update(Encoder::interruptArgs[{i}]); }},\n'
-    ISRs += f'      #endif\n'
+footer = f"""
 
-ISRs += r"""    };
+}} // namespace EncoderISRs
 
 #endif
 """
 
-with open(join(dirname(__file__), 'ISRs.ipp'), 'w') as f:
+decl = """\
+using ISR_fun_t = void (*)(void);
+
+extern ISR_fun_t ISRs[ENCODER_ARGLIST_SIZE];"""
+
+ISRs = "ISR_fun_t ISRs[ENCODER_ARGLIST_SIZE] = {\n"
+for i in range(max_num_interrupts):
+    ISRs += f'  #if {i} < ENCODER_ARGLIST_SIZE\n'
+    ISRs += f'    +[] {{ Encoder::update(Encoder::interruptArgs[{i}]); }},\n'
+    ISRs += f'  #endif\n'
+ISRs += "};"
+
+with open(join(dirname(__file__), 'ISRs-decl.ipp'), 'w') as f:
+    f.write(header)
+    f.write(decl)
+    f.write(footer)
+
+with open(join(dirname(__file__), 'ISRs-def.ipp'), 'w') as f:
+    f.write(header)
     f.write(ISRs)
+    f.write(footer)
