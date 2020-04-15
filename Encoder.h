@@ -86,7 +86,7 @@ public:
     Encoder &operator=(const Encoder&) = delete;
 
     Encoder(Encoder &&other) {
-        *this = std::move(other);
+        *this = enc_util::move(other);
     }
     Encoder &operator=(Encoder &&other) {
 #ifdef ENCODER_USE_INTERRUPTS
