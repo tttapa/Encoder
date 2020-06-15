@@ -72,11 +72,26 @@ typedef struct {
 class Encoder
 {
 public:
+    /**
+     * @brief   Constructor.
+     * 
+     * @param   pin1
+     *          The first pin, connected to the encoder's "A" pin.
+     * @param   pin2
+     *          The second pin, connected to the encoder's "B" pin.
+     * 
+     * The internal pull-up resistors will be enabled upon initialization 
+     * (when calling the `begin` method).
+     */
     Encoder(uint8_t pin1, uint8_t pin2)
 #ifdef ENCODER_USE_INTERRUPTS
     : pin1(pin1), pin2(pin2) 
 #endif
     {
+        // It's much faster to use the GPIO registers directly, rather than 
+        // calling digitalRead every time we need to read a pin.
+        // digitalRead looks up the register and bitmasks every time it's called
+        // but here, we look them up once in the constructor.
         encoder.pin1_register = PIN_TO_BASEREG(pin1);
         encoder.pin1_bitmask = PIN_TO_BITMASK(pin1);
         encoder.pin2_register = PIN_TO_BASEREG(pin2);
@@ -84,18 +99,34 @@ public:
         encoder.position = 0;
     }
 
+    /// Copy constructor: copying an Encoder object is semantically meaningless,
+    /// so it has been deleted.
     Encoder(const Encoder&) = delete;
+    /// Copy assignment: copying an Encoder object is semantically meaningless,
+    /// so it has been deleted.
     Encoder &operator=(const Encoder&) = delete;
 
+    /// Move constructor.
     Encoder(Encoder &&other) {
         *this = enc_util::move(other);
     }
+    /// Move assignment.
     Encoder &operator=(Encoder &&other) {
 #ifdef ENCODER_USE_INTERRUPTS
+        // First swap the normal member variables:
         enc_util::swap(this->pin1, other.pin1);
         enc_util::swap(this->pin2, other.pin2);
         enc_util::swap(this->interrupts_in_use, other.interrupts_in_use);
-        // update the pointers in interruptArgs:
+        // Next, update the pointers in interruptArgs:
+        // When interrupts are in use, there is a global interrupt context
+        // variable that holds a pointer to the encoders that are being swapped
+        // or moved.
+        // After moving, this pointer would no longer be valid, so it has to be
+        // changed to point to the new encoder object.
+        // Calling attachInterrupt is not necessary, because this should already
+        // have happened in the begin method if interrupts_in_use is nonzero.
+        // Before messing with the state variables that can be changed or 
+        // accessed from within an ISR, we have to disable interrupts.
         noInterrupts();
         enc_util::swap(this->encoder, other.encoder);
         if (this->interrupts_in_use > 0) {
@@ -116,6 +147,9 @@ public:
         }
         interrupts();
 #else
+        // If interrupts are disabled, we don't have to worry about dangling
+        // pointer in interrupt contexts, we can just swap the encoder state
+        // member variables.
         enc_util::swap(this->encoder, other.encoder);
 #endif
         return *this;
@@ -123,6 +157,9 @@ public:
 
     ~Encoder() {
 #ifdef ENCODER_USE_INTERRUPTS
+        // If interrupts are in use, there are dangling pointers to the encoder
+        // state in the global interrupt contexts. These have to be detached
+        // when the encoder object is removed.
         if (interrupts_in_use) {
             detachInterruptCtx(digitalPinToInterrupt(pin1));
             detachInterruptCtx(digitalPinToInterrupt(pin2));
@@ -173,6 +210,7 @@ public:
             // TODO: add disableInterrupt
 #endif
             --interrupts_in_use;
+            interruptArgs[interrupt] = nullptr;
         }
     }
 #endif
