@@ -82,9 +82,7 @@ public:
      * (when calling the `begin` method).
      */
     Encoder(uint8_t pin1, uint8_t pin2)
-#ifdef ENCODER_USE_INTERRUPTS
-    : pin1(pin1), pin2(pin2) 
-#endif
+      : pin1(pin1), pin2(pin2)
     {
         // It's much faster to use the GPIO registers directly, rather than 
         // calling digitalRead every time we need to read a pin.
@@ -265,8 +263,8 @@ public:
 #endif
 private:
     Encoder_internal_state_t encoder;
-#ifdef ENCODER_USE_INTERRUPTS
     uint8_t pin1, pin2;
+#ifdef ENCODER_USE_INTERRUPTS
     uint8_t interrupts_in_use = 0;
 #endif
 
