@@ -18,23 +18,36 @@ header = f"""\
 
 namespace EncoderISRs {{
 
+"""
+
+decl = """\
 using ISR_fun_t = void (*)(void);
 
+static ISR_fun_t getISR(uint8_t interrupt);
 """
 
 footer = f"""
-
 }} // namespace EncoderISRs
 
 #endif
 """
 
-ISRs = "static ISR_fun_t ISRs[ENCODER_ARGLIST_SIZE] = {\n"
+ISRs = """static ISR_fun_t getISR(uint8_t interrupt) {
+  switch (interrupt) {
+"""
 for i in range(max_num_interrupts):
-    ISRs += f'  #if {i} < ENCODER_ARGLIST_SIZE\n'
-    ISRs += f'    +[] {{ Encoder::update(Encoder::interruptArgs[{i}]); }},\n'
-    ISRs += f'  #endif\n'
-ISRs += "};"
+    ISRs += f'    #if {i} < ENCODER_ARGLIST_SIZE\n'
+    ISRs += f'    case {i}: return +[] {{ Encoder::update(Encoder::interruptArgs[{i}]); }};\n'
+    ISRs += f'    #endif\n'
+ISRs += """    default: return nullptr;
+  }
+};
+"""
+
+with open(join(dirname(__file__), 'ISRs-decl.ipp'), 'w') as f:
+    f.write(header)
+    f.write(decl)
+    f.write(footer)
 
 with open(join(dirname(__file__), 'ISRs-def.ipp'), 'w') as f:
     f.write(header)

@@ -52,7 +52,7 @@
 #define ENCODER_ARGLIST_SIZE 0
 #endif
 
-
+#include "codegen/ISRs-decl.ipp"
 
 // All the data needed by interrupts is consolidated into this ugly struct
 // to facilitate assembly language optimizing of the speed critical update.
@@ -193,8 +193,24 @@ public:
     }
 
 #ifdef ENCODER_USE_INTERRUPTS
-    void attachInterruptCtx(int interrupt);
-    void detachInterruptCtx(int interrupt);
+    void attachInterruptCtx(int interrupt) {
+        if (interrupt != NOT_AN_INTERRUPT) {
+            interruptArgs[interrupt] = &encoder;
+            ++interrupts_in_use;
+            attachInterrupt(interrupt, EncoderISRs::getISR(interrupt), CHANGE);
+        }
+    }
+    void detachInterruptCtx(int interrupt) {
+        if (interrupt != NOT_AN_INTERRUPT) {
+#ifndef ENCODER_OPTIMIZE_INTERRUPTS
+            detachInterrupt(interrupt);
+#else
+            // TODO: add disableInterrupt
+#endif
+            --interrupts_in_use;
+            interruptArgs[interrupt] = nullptr;
+        }
+    }
 #endif
 
 #ifdef ENCODER_USE_INTERRUPTS
@@ -413,29 +429,6 @@ public:
 };
 
 #include "codegen/ISRs-def.ipp"
-
-// Implementation
-
-#ifdef ENCODER_USE_INTERRUPTS
-inline void Encoder::attachInterruptCtx(int interrupt) {
-        if (interrupt != NOT_AN_INTERRUPT) {
-            interruptArgs[interrupt] = &encoder;
-            ++interrupts_in_use;
-            attachInterrupt(interrupt, EncoderISRs::ISRs[interrupt], CHANGE);
-        }
-    }
-inline void Encoder::detachInterruptCtx(int interrupt) {
-        if (interrupt != NOT_AN_INTERRUPT) {
-#ifndef ENCODER_OPTIMIZE_INTERRUPTS
-            detachInterrupt(interrupt);
-#else
-            // TODO: add disableInterrupt
-#endif
-            --interrupts_in_use;
-            interruptArgs[interrupt] = nullptr;
-        }
-    }
-#endif
 
 // Direct interrupt vector for AVR (optimized interrupts)
 
