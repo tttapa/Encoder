@@ -264,9 +264,7 @@ public:
 private:
     Encoder_internal_state_t encoder;
     uint8_t pin1, pin2;
-#ifdef ENCODER_USE_INTERRUPTS
     uint8_t interrupts_in_use = 0;
-#endif
 
 public:
     static Encoder_internal_state_t *interruptArgs[ENCODER_ARGLIST_SIZE];
