@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 
 #define attachInterrupt(num, func, mode) enableInterrupt(num)
+#define detachInterrupt(num) disableInterrupt(num)
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
 #define SCRAMBLE_INT_ORDER(num) ((num < 4) ? num + 2 : ((num < 6) ? num - 4 : num))
 #define DESCRAMBLE_INT_ORDER(num) ((num < 2) ? num + 4 : ((num < 6) ? num - 2 : num))
@@ -67,6 +68,54 @@ static void enableInterrupt(uint8_t num)
 		case 7:
 			EICRB = (EICRB & 0x3F) | 0x40;
 			EIMSK |= 0x80;
+			return;
+		#endif
+	}
+}
+
+static void disableInterrupt(uint8_t num)
+{
+	switch (DESCRAMBLE_INT_ORDER(num)) {
+		#if defined(EICRA) && defined(EIMSK)
+		case 0:
+			EIMSK &= ~0x01;
+			return;
+		case 1:
+			EIMSK &= ~0x02;
+			return;
+		case 2:
+			EIMSK &= ~0x04;
+			return;
+		case 3:
+			EIMSK &= ~0x08;
+			return;
+		#elif defined(MCUCR) && defined(GICR)
+		case 0:
+			GICR &= ~(1 << INT0);
+			return;
+		case 1:
+			GICR &= ~(1 << INT1);
+			return;
+		#elif defined(MCUCR) && defined(GIMSK)
+		case 0:
+			GIMSK &= ~(1 << INT0);
+			return;
+		case 1:
+			GIMSK &= ~(1 << INT1);
+			return;
+		#endif
+		#if defined(EICRB) && defined(EIMSK)
+		case 4:
+			EIMSK &= ~0x10;
+			return;
+		case 5:
+			EIMSK &= ~0x20;
+			return;
+		case 6:
+			EIMSK &= ~0x40;
+			return;
+		case 7:
+			EIMSK &= ~0x80;
 			return;
 		#endif
 	}

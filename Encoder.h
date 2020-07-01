@@ -158,13 +158,13 @@ public:
         // If interrupts are in use, there are dangling pointers to the encoder
         // state in the global interrupt contexts. These have to be detached
         // when the encoder object is removed.
-        if (interrupts_in_use) {
-            detachInterruptCtx(digitalPinToInterrupt(pin1));
-            detachInterruptCtx(digitalPinToInterrupt(pin2));
-        }
+        end();
 #endif
     }
 
+    /// Initialize this encoder by enabling the pull-up resistors and attaching
+    /// the interrupts handlers (if interrupts are enabled and available on the
+    /// the given pins).
     void begin() {
 #ifdef INPUT_PULLUP
         pinMode(pin1, INPUT_PULLUP);
@@ -192,6 +192,16 @@ public:
 #endif
     }
 
+    /// Disable the interrupts used by this encoder.
+    void end() {
+#ifdef ENCODER_USE_INTERRUPTS
+        if (interrupts_in_use) {
+            detachInterruptCtx(digitalPinToInterrupt(pin1));
+            detachInterruptCtx(digitalPinToInterrupt(pin2));
+        }
+#endif
+    }
+
 #ifdef ENCODER_USE_INTERRUPTS
     void attachInterruptCtx(int interrupt) {
         if (interrupt != NOT_AN_INTERRUPT) {
@@ -202,11 +212,7 @@ public:
     }
     void detachInterruptCtx(int interrupt) {
         if (interrupt != NOT_AN_INTERRUPT) {
-#ifndef ENCODER_OPTIMIZE_INTERRUPTS
             detachInterrupt(interrupt);
-#else
-            // TODO: add disableInterrupt
-#endif
             --interrupts_in_use;
             interruptArgs[interrupt] = nullptr;
         }
@@ -463,6 +469,9 @@ ISR(INT7_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(7)]);
 // Don't intefere with other libraries or sketch use of attachInterrupt()
 // https://github.com/PaulStoffregen/Encoder/issues/8
 #undef attachInterrupt
+#endif
+#if defined(detachInterrupt)
+#undef detachInterrupt
 #endif
 #endif // ENCODER_OPTIMIZE_INTERRUPTS
 
