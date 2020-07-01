@@ -11,7 +11,9 @@
 
 namespace EncoderISRs {
 
-ISR_fun_t ISRs[ENCODER_ARGLIST_SIZE] = {
+using ISR_fun_t = void (*)(void);
+
+static ISR_fun_t ISRs[ENCODER_ARGLIST_SIZE] = {
   #if 0 < ENCODER_ARGLIST_SIZE
     +[] { Encoder::update(Encoder::interruptArgs[0]); },
   #endif

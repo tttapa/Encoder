@@ -67,8 +67,6 @@ typedef struct {
     int32_t               position;
 } Encoder_internal_state_t;
 
-#include "codegen/ISRs-decl.ipp"
-
 class Encoder
 {
 public:
@@ -195,24 +193,8 @@ public:
     }
 
 #ifdef ENCODER_USE_INTERRUPTS
-    void attachInterruptCtx(int interrupt) {
-        if (interrupt != NOT_AN_INTERRUPT) {
-            interruptArgs[interrupt] = &encoder;
-            ++interrupts_in_use;
-            attachInterrupt(interrupt, EncoderISRs::ISRs[interrupt], CHANGE);
-        }
-    }
-    void detachInterruptCtx(int interrupt) {
-        if (interrupt != NOT_AN_INTERRUPT) {
-#ifndef ENCODER_OPTIMIZE_INTERRUPTS
-            detachInterrupt(interrupt);
-#else
-            // TODO: add disableInterrupt
-#endif
-            --interrupts_in_use;
-            interruptArgs[interrupt] = nullptr;
-        }
-    }
+    void attachInterruptCtx(int interrupt);
+    void detachInterruptCtx(int interrupt);
 #endif
 
 #ifdef ENCODER_USE_INTERRUPTS
@@ -429,6 +411,33 @@ public:
 #endif
     }
 };
+
+#include "codegen/ISRs-def.ipp"
+
+// Implementation
+
+#ifdef ENCODER_USE_INTERRUPTS
+inline void Encoder::attachInterruptCtx(int interrupt) {
+        if (interrupt != NOT_AN_INTERRUPT) {
+            interruptArgs[interrupt] = &encoder;
+            ++interrupts_in_use;
+            attachInterrupt(interrupt, EncoderISRs::ISRs[interrupt], CHANGE);
+        }
+    }
+inline void Encoder::detachInterruptCtx(int interrupt) {
+        if (interrupt != NOT_AN_INTERRUPT) {
+#ifndef ENCODER_OPTIMIZE_INTERRUPTS
+            detachInterrupt(interrupt);
+#else
+            // TODO: add disableInterrupt
+#endif
+            --interrupts_in_use;
+            interruptArgs[interrupt] = nullptr;
+        }
+    }
+#endif
+
+// Direct interrupt vector for AVR (optimized interrupts)
 
 #if defined(ENCODER_USE_INTERRUPTS) && defined(ENCODER_OPTIMIZE_INTERRUPTS)
 #if defined(__AVR__)
