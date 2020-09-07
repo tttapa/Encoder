@@ -1,5 +1,10 @@
 #pragma once
 
+
+#include <Settings/NamespaceSettings.hpp>
+
+BEGIN_CS_NAMESPACE
+
 namespace enc_util {
 
 template <class T> struct remove_reference       { typedef T type; };
@@ -20,3 +25,5 @@ void swap(T &t1, T &t2) {
 }
 
 } // namespace enc_util
+
+END_CS_NAMESPACE

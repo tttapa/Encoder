@@ -52,6 +52,10 @@
 #define ENCODER_ARGLIST_SIZE 0
 #endif
 
+#include <Settings/NamespaceSettings.hpp>
+
+BEGIN_CS_NAMESPACE
+
 #include "codegen/ISRs-decl.ipp"
 
 // All the data needed by interrupts is consolidated into this ugly struct
@@ -437,28 +441,28 @@ public:
 #if defined(ENCODER_USE_INTERRUPTS) && defined(ENCODER_OPTIMIZE_INTERRUPTS)
 #if defined(__AVR__)
 #if defined(INT0_vect) && CORE_NUM_INTERRUPT > 0
-ISR(INT0_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(0)]); }
+ISR(INT0_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(0)]); }
 #endif
 #if defined(INT1_vect) && CORE_NUM_INTERRUPT > 1
-ISR(INT1_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(1)]); }
+ISR(INT1_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(1)]); }
 #endif
 #if defined(INT2_vect) && CORE_NUM_INTERRUPT > 2
-ISR(INT2_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(2)]); }
+ISR(INT2_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(2)]); }
 #endif
 #if defined(INT3_vect) && CORE_NUM_INTERRUPT > 3
-ISR(INT3_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(3)]); }
+ISR(INT3_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(3)]); }
 #endif
 #if defined(INT4_vect) && CORE_NUM_INTERRUPT > 4
-ISR(INT4_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(4)]); }
+ISR(INT4_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(4)]); }
 #endif
 #if defined(INT5_vect) && CORE_NUM_INTERRUPT > 5
-ISR(INT5_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(5)]); }
+ISR(INT5_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(5)]); }
 #endif
 #if defined(INT6_vect) && CORE_NUM_INTERRUPT > 6
-ISR(INT6_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(6)]); }
+ISR(INT6_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(6)]); }
 #endif
 #if defined(INT7_vect) && CORE_NUM_INTERRUPT > 7
-ISR(INT7_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(7)]); }
+ISR(INT7_vect) { Encoder::update(Encoder::interruptArgs[CS_SCRAMBLE_INT_ORDER(7)]); }
 #endif
 #endif // AVR
 #if defined(attachInterrupt)
@@ -470,5 +474,7 @@ ISR(INT7_vect) { Encoder::update(Encoder::interruptArgs[SCRAMBLE_INT_ORDER(7)]);
 #undef detachInterrupt
 #endif
 #endif // ENCODER_OPTIMIZE_INTERRUPTS
+
+END_CS_NAMESPACE
 
 #endif

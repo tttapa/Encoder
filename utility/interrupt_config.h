@@ -6,16 +6,20 @@
 #define attachInterrupt(num, func, mode) enableInterrupt(num)
 #define detachInterrupt(num) disableInterrupt(num)
 #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-#define SCRAMBLE_INT_ORDER(num) ((num < 4) ? num + 2 : ((num < 6) ? num - 4 : num))
-#define DESCRAMBLE_INT_ORDER(num) ((num < 2) ? num + 4 : ((num < 6) ? num - 2 : num))
+#define CS_SCRAMBLE_INT_ORDER(num) ((num < 4) ? num + 2 : ((num < 6) ? num - 4 : num))
+#define CS_DESCRAMBLE_INT_ORDER(num) ((num < 2) ? num + 4 : ((num < 6) ? num - 2 : num))
 #else
-#define SCRAMBLE_INT_ORDER(num) (num)
-#define DESCRAMBLE_INT_ORDER(num) (num)
+#define CS_SCRAMBLE_INT_ORDER(num) (num)
+#define CS_DESCRAMBLE_INT_ORDER(num) (num)
 #endif
+
+#include <Settings/NamespaceSettings.hpp>
+
+BEGIN_CS_NAMESPACE
 
 static void enableInterrupt(uint8_t num)
 {
-	switch (DESCRAMBLE_INT_ORDER(num)) {
+	switch (CS_DESCRAMBLE_INT_ORDER(num)) {
 		#if defined(EICRA) && defined(EIMSK)
 		case 0:
 			EICRA = (EICRA & 0xFC) | 0x01;
@@ -75,7 +79,7 @@ static void enableInterrupt(uint8_t num)
 
 static void disableInterrupt(uint8_t num)
 {
-	switch (DESCRAMBLE_INT_ORDER(num)) {
+	switch (CS_DESCRAMBLE_INT_ORDER(num)) {
 		#if defined(EICRA) && defined(EIMSK)
 		case 0:
 			EIMSK &= ~0x01;
@@ -121,16 +125,18 @@ static void disableInterrupt(uint8_t num)
 	}
 }
 
+BEGIN_CS_NAMESPACE
+
 #elif defined(__PIC32MX__)
 
-#ifdef ENCODER_OPTIMIZE_INTERRUPTS
-#undef ENCODER_OPTIMIZE_INTERRUPTS
+#ifdef CS_ENCODER_OPTIMIZE_INTERRUPTS
+#undef CS_ENCODER_OPTIMIZE_INTERRUPTS
 #endif
 
 #else
 
-#ifdef ENCODER_OPTIMIZE_INTERRUPTS
-#undef ENCODER_OPTIMIZE_INTERRUPTS
+#ifdef CS_ENCODER_OPTIMIZE_INTERRUPTS
+#undef CS_ENCODER_OPTIMIZE_INTERRUPTS
 #endif
 
 #endif

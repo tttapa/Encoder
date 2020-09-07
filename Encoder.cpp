@@ -1,3 +1,4 @@
+#ifdef ARDUINO
 
 #include "Encoder.h"
 
@@ -5,4 +6,10 @@
 // configure options with #define (before they include it), and
 // to facilitate some crafty optimizations!
 
+BEGIN_CS_NAMESPACE
+
 Encoder_internal_state_t *Encoder::interruptArgs[] = {};
+
+END_CS_NAMESPACE
+
+#endif
