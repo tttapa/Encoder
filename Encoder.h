@@ -2,6 +2,9 @@
  * http://www.pjrc.com/teensy/td_libs_Encoder.html
  * Copyright (c) 2011,2013 PJRC.COM, LLC - Paul Stoffregen <paul@pjrc.com>
  *
+ * April-September 2020 - Pieter P:
+ *      make encoders moveable and add begin method for deterministic
+ *      initialization, large cleanup
  * Version 1.2 - fix -2 bug in C-only code
  * Version 1.1 - expand to support boards with up to 60 interrupts
  * Version 1.0 - initial release
@@ -58,10 +61,10 @@ BEGIN_CS_NAMESPACE
 
 #include "codegen/ISRs-decl.ipp"
 
-// All the data needed by interrupts is consolidated into this ugly struct
-// to facilitate assembly language optimizing of the speed critical update.
-// The assembly code uses auto-incrementing addressing modes, so the struct
-// must remain in exactly this order.
+/// All the data needed by interrupts is consolidated into this ugly struct
+/// to facilitate assembly language optimizing of the speed critical update.
+/// The assembly code uses auto-incrementing addressing modes, so the struct
+/// must remain in exactly this order.
 typedef struct {
     volatile IO_REG_TYPE *pin1_register;
     volatile IO_REG_TYPE *pin2_register;
